@@ -36,6 +36,8 @@ onMounted(async () => {
   }
 })
 
+
+
 const guardarAuto = async () => {
   if (!expandedAuto.value || !user.value) return confirm('⚠️ Inicia seccion para guardar favoritos.')
 
@@ -46,8 +48,8 @@ const guardarAuto = async () => {
     .eq('id_usuario', user.value.id)
     .single()
 
-  if (existente) {
-    const confirmar = confirm('⚠️ Este auto ya está en tus favoritos.')
+    if (existente) {
+      const confirmar = confirm('⚠️ Este auto ya está en tus favoritos.')
     return
   }
   else{
@@ -110,6 +112,7 @@ const updateQueryParams = () => {
 }
 
 watch(() => route.query, readQueryParams, { immediate: true })
+const isAdmin = computed(() => user.value?.id === '8ac67f4f-6fbc-483a-8c8e-f0ed0bb0df7a')
 
 const filteredAutos = computed(() => {
   let result = listauto.value
@@ -126,6 +129,31 @@ const filteredAutos = computed(() => {
 
   return result
 })
+
+const eliminarAuto = async (id_auto: string) => {
+  if (user.value.id !== '8ac67f4f-6fbc-483a-8c8e-f0ed0bb0df7a') {
+    return alert('⚠️ No tienes permisos para eliminar autos.')
+  }
+
+  const confirmar = confirm('¿Estás seguro de que quieres eliminar este auto?')
+  if (!confirmar) return
+
+  try {
+    const { error } = await $supabase
+      .from('autos')
+      .delete()
+      .eq('id_auto', id_auto)
+
+    if (error) throw error
+
+    listauto.value = listauto.value.filter(a => a.id_auto !== id_auto)
+
+    alert('✅ Auto eliminado correctamente.')
+  } catch (err: any) {
+    console.error('Error al eliminar:', err.message)
+    alert('❌ Error al eliminar el auto.')
+  }
+}
 
 </script>
 
@@ -168,7 +196,7 @@ const filteredAutos = computed(() => {
           </span>
         </div>
       </div>
-      <div class="flex items-center gap-4 mb-4 text-sm text-gray-600 ml-4">
+      <div class="flex items-center gap-4 mb-4 text-lg text-gray-600 ml-4">
         <div class="flex items-center gap-1">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -187,6 +215,13 @@ const filteredAutos = computed(() => {
         <p class="text-2xl font-bold text-gray-900 m-3">${{ auto.precio }},000</p>
         <p class="text-ms text-gray-500 m-3">Precio de venta</p>
       </div>
+          <div v-if="user && isAdmin" class="">
+            <button
+              @click="eliminarAuto(auto.id_auto)"
+              class="bg-red-500 text-white py-3 px-4 m-3 rounded-md hover:bg-red-600 flex">
+              Eliminar
+            </button>
+          </div>
     </div>
   </div>
 </div>
@@ -194,19 +229,12 @@ const filteredAutos = computed(() => {
   <transition name="fade">
     <div
       v-if="expandedAuto"
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 " 
+      class="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50 " 
       @click.self="closeCard"
     >
       <div
-        class="bg-blue-100  rounded-xl shadow-2xl w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 max-h-[90vh] overflow-y-auto p-6 relative"
+        class="bg-white/100 backdrop-blur-md rounded-xl shadow-2xl w-11/12 md:w-3/4 lg:w-2/3 xl:w-1/2 max-h-[90vh] overflow-y-auto p-6 relative"
       >
-        <!-- Botón cerrar -->
-        <button
-          @click="closeCard"
-          class="absolute top-3 right-3 text-gray-500 hover:text-red-500"
-        >
-          ✕
-        </button>
         <img
           v-if="expandedAuto.imagen"
           :src="expandedAuto.imagen"
@@ -260,5 +288,3 @@ input {
   border-radius: 9px;
 }
 </style>
-
-

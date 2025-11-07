@@ -69,6 +69,7 @@ onMounted(async () => {
       </div>
 
       <div class="border-t border-gray-200 mt-4 pt-4 space-y-2">
+        <p><strong>{{ usuario.rol  }}</strong></p>
         <p><strong>Correo:</strong> {{ email || 'Sin correo asociado' }}</p>
         <p><strong>Edad:</strong> {{ usuario.edad || 'No especificada' }}</p>
         <p><strong>Teléfono:</strong> {{ usuario.telefono || 'No registrado' }}</p>
